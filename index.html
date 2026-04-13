@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户好评展示</title>
+  <style>
+    /* 基础样式重置 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #F3F4F6;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    /* 标题样式 */
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1F2937;
+      margin-bottom: 0.5rem;
+    }
+    
+    header p {
+      color: #6B7280;
+    }
+    
+    /* 好评卡片样式 */
+    .review-card {
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .review-card:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      transform: translateY(-2px);
+    }
+    
+    .review-content {
+      color: #4B5563;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+    
+    /* 按钮样式 */
+    .copy-btn {
+      background-color: #E0E7FF;
+      color: #4F46E5;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .copy-btn:hover {
+      background-color: #4F46E5;
+      color: white;
+    }
+    
+    .copy-btn.copied {
+      background-color: #FEE2E2;
+      color: #DC2626;
+      cursor: not-allowed;
+    }
+    
+    .review-card.copied {
+      border: 2px solid #DC2626;
+      background-color: #FEF2F2;
+    }
+    
+    /* 复制成功提示 */
+    .copy-success {
+      color: #10B981;
+      font-size: 0.75rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    
+    .copy-success.show {
+      display: block;
+    }
+    
+    /* 动画效果 */
+    .fade-out {
+      animation: fadeOut 0.5s ease-out forwards;
+    }
+    
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1F2937;
+      margin-bottom: 0.5rem;
+    }
+    
+    /* 刷新按钮 */
+    .refresh-btn {
+      background-color: #4F46E5;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      display: block;
+      margin: 0 auto;
+    }
+    
+    .refresh-btn:hover {
+      background-color: #4338CA;
+    }
+    
+    /* 分页按钮 */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin: 2rem 0;
+      gap: 0.5rem;
+    }
+    
+    .page-btn {
+      background-color: #FFFFFF;
+      color: #4F46E5;
+      border: 1px solid #E0E7FF;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .page-btn:hover {
+      background-color: #E0E7FF;
+    }
+    
+    .page-btn.active {
+      background-color: #4F46E5;
+      color: white;
+      border-color: #4F46E5;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 640px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      h1 {
+        font-size: 1.75rem;
+      }
+      
+      .review-card {
+        padding: 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 标题区域 -->
+    <header>
+      <h1>用户好评展示</h1>
+      <p>查看并复制用户的真实评价</p>
+    </header>
+
+    <!-- 好评容器 -->
+    <div id="reviews-container">
+      <!-- 好评将通过JavaScript动态生成 -->
+    </div>
+
+    <!-- 分页按钮 -->
+    <div id="pagination" class="pagination">
+      <!-- 分页按钮将通过JavaScript动态生成 -->
+    </div>
+
+    <!-- 刷新按钮 -->
+    <div class="mt-8">
+      <button id="refresh-reviews-btn" class="refresh-btn">
+        刷新好评
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 100条好评数据
+    const reviews = [
+      { id: 1, content: "巴海牛的鲜切牛肉真的新鲜，立盘不倒，涮完嫩而不柴。牛骨汤底清淡鲜香，服务也很贴心，整体体验超棒，值得常来。" },
+      { id: 2, content: "第一次来就被惊艳到，牛肉现切现上，口感嫩滑有嚼劲。锅底味道很正，小料齐全，环境干净，性价比很高。" },
+      { id: 3, content: "不愧是主打鲜切牛肉的店，肉质紧实不松散，涮几秒就入味。汤底清爽不油腻，上菜速度快，服务态度也很好。" },
+      { id: 4, content: "整体体验超出预期，牛肉新鲜看得见，纹理漂亮。锅底醇厚，配菜新鲜，环境整洁，朋友聚餐很合适。" },
+      { id: 5, content: "肉食爱好者必冲这家，鲜切牛肉品质在线，入口鲜嫩多汁。牛骨汤暖胃舒服，服务周到，价格也很亲民。" },
+      { id: 6, content: "店内环境干净明亮，座位宽敞。鲜切牛肉口感绝佳，蘸上沙茶酱绝了，分量足，吃完特别满足。" },
+      { id: 7, content: "锅底原汁原味，不抢肉的鲜味。牛肉嫩度刚好，不塞牙，服务响应及时，性价比拉满，推荐大家来试试。" },
+      { id: 8, content: "明档切肉很放心，牛肉新鲜度拉满。涮完鲜香嫩滑，丸子 Q 弹，整体口味很正宗，体验感很好。" },
+      { id: 9, content: "周末聚餐选这家太合适，牛肉新鲜好吃，汤底鲜而不腻。环境舒适，服务热情，吃完浑身舒服。" },
+      { id: 10, content: "牛肉品质稳定，每次来都不踩雷。口感鲜嫩，汤底清爽，小料丰富，价格实在，一人食也很合适。" },
+      { id: 11, content: "鲜切牛肉嫩到入口即化，牛骨汤越煮越香。环境干净卫生，服务贴心，性价比高，已经推荐给朋友。" },
+      { id: 12, content: "口味正宗，食材新鲜，牛肉涮完不散不碎。锅底清淡养生，老人小孩都能吃，服务也很到位。" },
+      { id: 13, content: "上菜速度很快，不用久等。牛肉鲜嫩弹牙，汤底味道适中，环境简约舒服，整体很满意。" },
+      { id: 14, content: "牛肉纹理清晰，肥瘦均匀，吃起来香而不腻。锅底鲜香，服务态度好，环境安静，值得回购。" },
+      { id: 15, content: "来吃过好几次了，依旧很满意。鲜切牛肉保持高水准，汤底浓郁，分量实在，价格亲民。" },
+      { id: 16, content: "整体氛围很好，适合聚餐。牛肉新鲜嫩滑，锅底不辣也很有味道，小料齐全，体验感满分。" },
+      { id: 17, content: "牛肉不注水不柴口，涮完口感超赞。牛骨汤底原汁原味，服务热情，环境干净，闭眼冲不亏。" },
+      { id: 18, content: "菜品新鲜，分量扎实，牛肉鲜嫩入味。锅底清爽解腻，服务周到，性价比高，强烈推荐。" },
+      { id: 19, content: "店内装修简约大气，卫生状况很好。鲜切牛肉口感一流，汤底鲜香，服务响应快。" },
+      { id: 20, content: "牛肉鲜嫩多汁，搭配秘制蘸料超香。锅底清淡不厚重，环境舒适，服务贴心，吃得很舒心。" },
+      { id: 21, content: "鲜切牛肉品质在线，立盘不掉，新鲜看得见。汤底暖胃，配菜新鲜，服务好，值得 N 刷。" },
+      { id: 22, content: "口味很地道，牛肉嫩度刚好，不柴不硬。锅底鲜香浓郁，环境干净，上菜快，体验很不错。" },
+      { id: 23, content: "性价比超高的牛肉火锅，牛肉新鲜好吃，汤底醇厚。服务热情，环境整洁，聚餐首选。" },
+      { id: 24, content: "牛肉入口嫩滑，香气十足，锅底不油腻。小料种类多，环境舒服，服务态度超赞。" },
+      { id: 25, content: "明档操作看得见，吃得更放心。牛肉鲜嫩弹牙，汤底清爽，服务到位，整体很满意。" },
+      { id: 26, content: "汤底鲜醇，涮肉特别香，牛肉鲜嫩不塞牙。环境干净，服务贴心，价格合理，值得再来。" },
+      { id: 27, content: "牛肉新鲜度很高，口感层次丰富。锅底清淡养生，配菜新鲜，服务好，氛围也很轻松。" },
+      { id: 28, content: "整体体验很棒，牛肉鲜嫩入味，锅底味道正。环境整洁，上菜快，服务周到，推荐打卡。" },
+      { id: 29, content: "牛肉品质没得说，涮完鲜香嫩滑。牛骨汤暖胃，小料齐全，环境舒适，性价比很高。" },
+      { id: 30, content: "服务热情周到，细节到位。鲜切牛肉口感绝佳，锅底鲜香，环境干净，吃得很满足。" },
+      { id: 31, content: "牛肉鲜嫩不腻，锅底清爽，适合不爱重口的人。环境安静，上菜快，价格实惠，很推荐。" },
+      { id: 32, content: "鲜切牛肉现点现切，新鲜度满分。汤底浓郁，配菜新鲜，服务好，是会回购的店。" },
+      { id: 33, content: "店内人气很旺，味道确实不错。牛肉鲜嫩弹牙，锅底鲜香，环境干净，服务也很及时。" },
+      { id: 34, content: "牛肉口感嫩滑，涮几秒就熟，锅底不抢味。服务贴心，环境舒适，性价比超高。" },
+      { id: 35, content: "汤底原汁原味，喝着很舒服。牛肉鲜嫩多汁，小料丰富，环境整洁，服务态度好。" },
+      { id: 36, content: "鲜切牛肉品质稳定，每次都很满意。锅底清淡，适合全家吃，环境好，服务到位。" },
+      { id: 37, content: "牛肉香嫩入味，不柴不散，锅底鲜香解腻。环境干净，上菜快，服务热情，值得推荐。" },
+      { id: 38, content: "整体口味很正宗，牛肉新鲜好吃。汤底醇厚，分量足，服务贴心，价格很亲民。" },
+      { id: 39, content: "明档切肉，新鲜看得见，吃得放心。牛肉嫩滑有嚼劲，汤底清爽，服务周到。" },
+      { id: 40, content: "牛肉鲜嫩，锅底鲜香，环境简约干净。服务响应快，性价比高，朋友聚餐很合适。" },
+      { id: 41, content: "汤底鲜而不咸，涮肉刚刚好。牛肉嫩度适中，不塞牙，环境舒服，服务态度很好。" },
+      { id: 42, content: "鲜切牛肉口感超赞，新鲜弹牙，锅底清淡养生。小料齐全，环境干净，值得一试。" },
+      { id: 43, content: "服务细致贴心，用餐体验很好。牛肉鲜嫩入味，锅底鲜香，环境整洁，价格实惠。" },
+      { id: 44, content: "牛肉纹理漂亮，涮完不散，口感鲜嫩。锅底清爽，配菜新鲜，环境好，性价比高。" },
+      { id: 45, content: "店内氛围轻松，适合小聚。牛肉新鲜好吃，锅底不油腻，服务热情，整体很满意。" },
+      { id: 46, content: "牛肉鲜嫩多汁，锅底暖胃舒服。小料丰富，环境干净，上菜快，体验感很不错。" },
+      { id: 47, content: "鲜切牛肉不踩雷，每一款都好吃。锅底鲜香，服务到位，环境整洁，推荐大家来。" },
+      { id: 48, content: "汤底味道适中，不重口，突出肉香。牛肉鲜嫩弹牙，环境好，服务贴心，价格合理。" },
+      { id: 49, content: "牛肉新鲜紧实，涮完香气十足。锅底清淡，适合日常吃，服务好，环境干净。" },
+      { id: 50, content: "整体很满意，牛肉鲜嫩，锅底正宗。环境舒适，服务周到，性价比高，会常来光顾。" },
+      { id: 51, content: "鲜切牛肉新鲜嫩滑，牛骨汤底越煮越香。环境干净，服务热情，价格亲民，值得打卡。" },
+      { id: 52, content: "牛肉口感绝佳，不柴不腻，锅底鲜香浓郁。上菜快，环境好，服务贴心，超推荐。" },
+      { id: 53, content: "明档现切，品质有保障，牛肉鲜嫩入味。汤底清爽，小料齐全，服务态度很好。" },
+      { id: 54, content: "店内卫生做得很好，用餐放心。牛肉鲜嫩弹牙，锅底清淡，服务及时，性价比高。" },
+      { id: 55, content: "牛肉新鲜度高，涮完嫩滑爽口。锅底暖胃，配菜新鲜，环境舒适，服务周到。" },
+      { id: 56, content: "口味地道，牛肉鲜嫩，锅底不油腻。环境安静，服务好，价格实惠，很适合常来。" },
+      { id: 57, content: "鲜切牛肉立盘不倒，品质看得见。汤底鲜香，服务热情，环境整洁，体验感拉满。" },
+      { id: 58, content: "牛肉嫩而有嚼劲，锅底味道正。小料丰富，环境干净，上菜快，整体很满意。" },
+      { id: 59, content: "服务态度超棒，细节很到位。牛肉鲜嫩好吃，锅底醇厚，环境舒适，性价比很高。" },
+      { id: 60, content: "牛肉鲜香嫩滑，锅底清淡解腻。环境简约，服务贴心，价格合理，值得再次光顾。" },
+      { id: 61, content: "汤底鲜醇，涮肉香气十足，牛肉鲜嫩不塞牙。环境干净，服务好，性价比超高。" },
+      { id: 62, content: "鲜切牛肉品质在线，口感嫩滑。锅底清淡养生，适合全家，环境好，服务周到。" },
+      { id: 63, content: "店内装修简洁大方，干净整洁。牛肉鲜嫩入味，锅底鲜香，服务及时，很推荐。" },
+      { id: 64, content: "牛肉不松散，涮完依旧完整，口感鲜嫩。锅底清爽，小料齐全，服务热情。" },
+      { id: 65, content: "整体用餐很舒心，牛肉新鲜好吃。锅底暖胃，环境舒适，服务贴心，价格实在。" },
+      { id: 66, content: "牛肉鲜嫩多汁，香气浓郁，锅底不抢味。环境干净，上菜快，服务态度好。" },
+      { id: 67, content: "鲜切牛肉现切现上，新鲜度满分。锅底醇厚，配菜新鲜，服务好，值得回购。" },
+      { id: 68, content: "汤底清淡鲜香，很适合涮牛肉。牛肉嫩度刚好，环境整洁，服务到位，性价比高。" },
+      { id: 69, content: "牛肉口感弹牙，不柴口，锅底味道正宗。环境舒适，服务热情，价格很亲民。" },
+      { id: 70, content: "明档操作，干净卫生，牛肉新鲜看得见。汤底清爽，服务贴心，整体体验很好。" },
+      { id: 71, content: "牛肉鲜嫩入味，锅底鲜香解腻。环境安静，上菜快，服务周到，很适合聚餐。" },
+      { id: 72, content: "鲜切牛肉品质稳定，每次都不失望。锅底清淡，小料丰富，环境好，服务到位。" },
+      { id: 73, content: "汤底原汁原味，喝着舒服，牛肉鲜嫩弹牙。环境干净，服务好，性价比超高。" },
+      { id: 74, content: "牛肉纹理清晰，肥瘦合适，吃着香而不腻。锅底醇厚，服务热情，环境整洁。" },
+      { id: 75, content: "店内氛围温馨，适合朋友小聚。牛肉新鲜好吃，锅底不油腻，服务贴心。" },
+      { id: 76, content: "牛肉鲜嫩，锅底鲜香，分量扎实。环境干净，上菜快，服务好，价格实惠。" },
+      { id: 77, content: "鲜切牛肉涮完嫩滑，香气十足。锅底清淡养生，服务周到，环境舒适，推荐。" },
+      { id: 78, content: "服务响应迅速，态度友好。牛肉鲜嫩入味，锅底清爽，环境整洁，性价比高。" },
+      { id: 79, content: "牛肉新鲜不注水，口感紧实嫩滑。锅底鲜香，小料齐全，环境好，值得一试。" },
+      { id: 80, content: "汤底味道适中，不咸不淡，突出肉香。牛肉鲜嫩，环境舒服，服务热情。" },
+      { id: 81, content: "鲜切牛肉口感一流，新鲜弹牙。锅底暖胃，配菜新鲜，环境干净，服务到位。" },
+      { id: 82, content: "牛肉嫩而不柴，锅底浓郁鲜香。环境简约，服务贴心，价格合理，吃得很满足。" },
+      { id: 83, content: "店内卫生状况很好，用餐安心。牛肉鲜嫩多汁，锅底清淡，服务及时，超推荐。" },
+      { id: 84, content: "牛肉新鲜度高，涮完不散不碎。锅底鲜香，小料丰富，环境舒适，服务好。" },
+      { id: 85, content: "整体口味在线，牛肉鲜嫩，锅底正宗。环境整洁，服务热情，性价比很高。" },
+      { id: 86, content: "鲜切牛肉品质好，立盘不掉，新鲜放心。锅底清爽，服务周到，环境干净。" },
+      { id: 87, content: "牛肉入口嫩滑，香气浓郁，锅底不油腻。环境安静，上菜快，服务态度好。" },
+      { id: 88, content: "汤底鲜醇好喝，涮肉特别香。牛肉鲜嫩不塞牙，环境好，服务贴心，价格实惠。" },
+      { id: 89, content: "牛肉口感丰富，嫩中带弹，锅底味道正。环境舒适，服务好，性价比拉满。" },
+      { id: 90, content: "明档切肉看得见，吃得放心。牛肉鲜嫩入味，锅底清淡，服务热情，很满意。" },
+      { id: 91, content: "鲜切牛肉新鲜好吃，汤底暖胃舒服。环境干净，小料齐全，服务周到，推荐打卡。" },
+      { id: 92, content: "牛肉不柴不硬，涮完鲜香嫩滑。锅底醇厚，环境整洁，服务及时，价格亲民。" },
+      { id: 93, content: "店内人气高，味道确实在线。牛肉鲜嫩弹牙，锅底鲜香，服务好，环境舒适。" },
+      { id: 94, content: "牛肉鲜嫩多汁，锅底清淡解腻。环境简约，服务贴心，上菜快，体验感很好。" },
+      { id: 95, content: "鲜切牛肉品质在线，口感绝佳。锅底原汁原味，服务热情，环境干净，值得 N 刷。" },
+      { id: 96, content: "汤底鲜香浓郁，不抢肉味。牛肉鲜嫩，环境好，服务到位，性价比超高。" },
+      { id: 97, content: "牛肉纹理漂亮，涮完入味，口感鲜嫩。锅底清爽，小料丰富，服务态度好。" },
+      { id: 98, content: "整体用餐体验很棒，牛肉新鲜好吃。锅底暖胃，环境舒适，服务贴心，价格实在。" },
+      { id: 99, content: "鲜切牛肉现点现切，新鲜度满分。锅底清淡，配菜新鲜，服务好，环境干净。" },
+      { id: 100, content: "牛肉鲜嫩弹牙，锅底味道正宗。环境整洁，服务热情，上菜快，是会常来的店。" }
+    ];
+
+    // 分页相关变量
+    let currentPage = getCurrentPage();
+    const pageSize = 10;
+
+    // 从localStorage获取已复制的好评ID
+    function getCopiedReviews() {
+      try {
+        const copied = localStorage.getItem('copiedReviews');
+        return copied ? JSON.parse(copied) : [];
+      } catch (error) {
+        console.error('读取localStorage失败:', error);
+        return [];
+      }
+    }
+
+    // 保存已复制的好评ID到localStorage
+    function saveCopiedReview(reviewId) {
+      try {
+        const copiedReviews = getCopiedReviews();
+        if (!copiedReviews.includes(reviewId)) {
+          copiedReviews.push(reviewId);
+          localStorage.setItem('copiedReviews', JSON.stringify(copiedReviews));
+        }
+      } catch (error) {
+        console.error('写入localStorage失败:', error);
+      }
+    }
+
+    // 保存当前页码到localStorage
+    function saveCurrentPage() {
+      try {
+        localStorage.setItem('currentPage', currentPage);
+      } catch (error) {
+        console.error('保存页码失败:', error);
+      }
+    }
+
+    // 从localStorage获取当前页码
+    function getCurrentPage() {
+      try {
+        const page = localStorage.getItem('currentPage');
+        return page ? parseInt(page) : 1;
+      } catch (error) {
+        console.error('读取页码失败:', error);
+        return 1;
+      }
+    }
+
+    // 渲染好评列表
+    function renderReviews() {
+      const container = document.getElementById('reviews-container');
+      const copiedReviews = getCopiedReviews();
+      
+      // 过滤出未复制的好评
+      const remainingReviews = reviews.filter(review => !copiedReviews.includes(review.id));
+      
+      // 保持固定排序，不随机
+      // remainingReviews.sort(() => Math.random() - 0.5);
+      
+      // 计算分页
+      const totalPages = Math.ceil(remainingReviews.length / pageSize);
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const displayReviews = remainingReviews.slice(startIndex, endIndex);
+      
+      // 清空容器
+      container.innerHTML = '';
+      
+      // 显示好评列表
+      displayReviews.forEach(review => {
+        const reviewElement = document.createElement('div');
+        reviewElement.className = 'review-card';
+        reviewElement.dataset.reviewId = review.id;
+        
+        reviewElement.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <p class="review-content">"${review.content}"</p>
+            <button class="copy-btn">
+              复制
+            </button>
+          </div>
+          <div class="copy-success">
+            复制成功！
+          </div>
+        `;
+        
+        container.appendChild(reviewElement);
+      });
+      
+      // 渲染分页按钮
+      renderPagination(totalPages);
+      
+      // 添加复制按钮事件监听
+      addCopyEventListeners();
+    }
+
+    // 渲染分页按钮
+    function renderPagination(totalPages) {
+      const paginationContainer = document.getElementById('pagination');
+      paginationContainer.innerHTML = '';
+      
+      // 生成1-10的页码按钮
+      for (let i = 1; i <= Math.min(totalPages, 10); i++) {
+        const pageButton = document.createElement('button');
+        pageButton.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageButton.textContent = i;
+        pageButton.addEventListener('click', () => {
+          currentPage = i;
+          saveCurrentPage();
+          renderReviews();
+        });
+        paginationContainer.appendChild(pageButton);
+      }
+    }
+
+    // 添加复制按钮事件监听
+    function addCopyEventListeners() {
+      const copyButtons = document.querySelectorAll('.copy-btn');
+      
+      copyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const reviewElement = this.closest('[data-review-id]');
+          const reviewId = parseInt(reviewElement.dataset.reviewId);
+          const reviewContent = reviewElement.querySelector('.review-content').textContent.replace(/"/g, '');
+          const successMessage = reviewElement.querySelector('.copy-success');
+          
+          // 复制到剪贴板
+          navigator.clipboard.writeText(reviewContent)
+            .then(() => {
+              // 显示复制成功提示
+              successMessage.classList.add('show');
+              
+              // 更改按钮状态
+              this.textContent = '已复制';
+              this.classList.add('copied');
+              
+              // 将div变成红色
+              reviewElement.classList.add('copied');
+              
+              // 保存到localStorage
+              saveCopiedReview(reviewId);
+              
+              // 3秒后隐藏好评
+              setTimeout(() => {
+                reviewElement.classList.add('fade-out');
+                setTimeout(() => {
+                  // 重新渲染时保持当前页码
+                  renderReviews();
+                }, 500);
+              }, 3000);
+            })
+            .catch(err => {
+              console.error('复制失败:', err);
+            });
+        });
+      });
+    }
+
+    // 刷新好评功能
+    function setupRefreshButton() {
+      const refreshButtons = document.querySelectorAll('#refresh-reviews-btn');
+      
+      refreshButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // 清除localStorage中的已复制记录
+          try {
+            localStorage.removeItem('copiedReviews');
+            // 重置页码为1
+            currentPage = 1;
+            saveCurrentPage();
+          } catch (error) {
+            console.error('清除localStorage失败:', error);
+          }
+          // 重新渲染好评
+          renderReviews();
+        });
+      });
+    }
+
+    // 初始化页面
+    function init() {
+      renderReviews();
+      setupRefreshButton();
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
